@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const serverUrl = "https://chat-app-one-be.vercel.app";
+export const serverUrl = "https://chat-app-sn3m.onrender.com";
 
 const baseUrl = axios.create({
   baseURL: `${serverUrl}/api/v1`,
