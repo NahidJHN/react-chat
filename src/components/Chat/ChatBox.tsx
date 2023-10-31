@@ -50,7 +50,11 @@ function ChatBox({ user, messages }: PropTypes) {
 
   const handleFocus = () => {
     setIsEmojiPickerOpen(false);
-    if (conversationId && messages[messages.length - 1]?.sender !== user?._id) {
+    if (
+      conversationId &&
+      messages.length &&
+      messages[messages.length - 1]?.sender !== user?._id
+    ) {
       socket.emit("readText", { _id: conversationId, userId: user?._id });
     }
   };

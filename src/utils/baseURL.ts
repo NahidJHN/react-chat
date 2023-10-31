@@ -1,6 +1,7 @@
 import axios from "axios";
 
-export const serverUrl = "https://chat-app-sn3m.onrender.com";
+export const serverUrl = "http://localhost:5050";
+// export const serverUrl = "https://chat-app-sn3m.onrender.com";
 
 const baseUrl = axios.create({
   baseURL: `${serverUrl}/api/v1`,
@@ -19,6 +20,7 @@ axios.interceptors.response.use(
   },
   (error) => {
     window.alert(error.response.data.message);
+    console.log(error.response.data.message);
     return error;
   }
 );

@@ -70,7 +70,6 @@ export const filterParticipants = (
   user: any
 ) => {
   const isGroup = conversation?.type === "group";
-
   if (isGroup) {
     const groupConversation = groupConversations?.find(
       (item) => item._id === conversation.groupConversation

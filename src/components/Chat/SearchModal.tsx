@@ -18,17 +18,16 @@ import baseUrl from "../../utils/baseURL";
 
 type Props = {
   users: any[];
+  checked: any[];
+  setChecked: Function;
 };
 
-function CheckboxListSecondary({ users }: Props) {
-  const [checked, setChecked] = React.useState([1]);
-
-  const handleToggle = (value: number) => () => {
-    const currentIndex = checked.indexOf(value);
+function CheckboxListSecondary({ users, setChecked, checked }: Props) {
+  const handleToggle = (user: any) => () => {
+    const currentIndex = checked.findIndex((item) => item._id === user._id);
     const newChecked = [...checked];
-
     if (currentIndex === -1) {
-      newChecked.push(value);
+      newChecked.push(user);
     } else {
       newChecked.splice(currentIndex, 1);
     }
@@ -45,11 +44,11 @@ function CheckboxListSecondary({ users }: Props) {
         return (
           <ListItem
             key={user}
+            onClick={handleToggle(user)}
             secondaryAction={
               <Checkbox
                 edge="end"
-                onChange={handleToggle(user)}
-                checked={checked.indexOf(user) !== -1}
+                checked={checked.some((item) => item._id === user._id)}
                 inputProps={{ "aria-labelledby": labelId }}
               />
             }
@@ -87,6 +86,7 @@ export default function FormDialog({
   const [users, setUsers] = useState<any>([]);
   const [timerId, setTimerId] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [checked, setChecked] = React.useState<any[]>([]);
 
   //fetch user func
   const fetchUsers = async (searchTerms: string) => {
@@ -116,24 +116,26 @@ export default function FormDialog({
   };
 
   //select user handler
-  const handleSelect = (participant: any) => async () => {
+  const handleSelect = async () => {
     //create conversation
-    const conversation = {
-      creator: user?._id,
-      participant: participant._id,
+    const conversation: any = {
+      participants: checked.map((item) => item._id),
+      type: checked.length > 1 ? "group" : "dual",
+      creator: user._id,
+      name: checked[0].name,
     };
 
-    const createConversation = async () => {
-      //hit create conversation api
-      try {
-        const { data } = await baseUrl.post("conversations", conversation);
-        window.location.href = `?conversationId=${data.data._id}`;
-      } catch (error) {
-        console.log(error);
-      }
-    };
+    if (conversation.type === "group") {
+      conversation.name = checked.map((item) => item.name).join(", ");
+    }
 
-    await createConversation();
+    //hit create conversation api
+    try {
+      const { data } = await baseUrl.post("conversations", conversation);
+      window.location.href = `?conversationId=${data.data._id}`;
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -159,11 +161,17 @@ export default function FormDialog({
             ),
           }}
         />
-        {search && <CheckboxListSecondary users={users} />}
+        {search && (
+          <CheckboxListSecondary
+            checked={checked}
+            setChecked={setChecked}
+            users={users}
+          />
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleClose}>Search</Button>
+        <Button onClick={handleSelect}>Create</Button>
       </DialogActions>
     </Dialog>
   );

@@ -13,7 +13,6 @@ import MenuOpenIcon from "@mui/icons-material/MenuOpen";
 import { Container, Tooltip } from "@mui/material";
 
 import Conversations from "./Conversations";
-import SearchUser from "./SearchUser";
 import ChatHeader from "./Chat-Header";
 
 import ChatBox from "./ChatBox";
@@ -28,7 +27,7 @@ import {
 import MapsUgcIcon from "@mui/icons-material/MapsUgc";
 import FormDialog from "./SearchModal";
 import useAuthUser from "../../hooks/AuthUser";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { SocketContext } from "../../context/Socket.context";
 const drawerWidth = 300;
 
@@ -115,6 +114,7 @@ const Drawer = styled(MuiDrawer, {
 }));
 
 export default function Chat() {
+  const audioRef = React.useRef<HTMLAudioElement>(null);
   const [open, setOpen] = React.useState(true);
 
   const handleDrawerOpen = () => {
@@ -189,14 +189,18 @@ export default function Chat() {
     if (socket?.connected) {
       socket.on("chat", (data: any) => {
         setMessages((prevState) => [...prevState, data]);
+        // audioRef.current?.play();
       });
+
       socket.on("conversation", (data: any) => {
-        console.log(data);
         const prevState = [...conversations];
+
         const index = prevState.findIndex(
           (conversation) => conversation._id === data._id
         );
-        prevState[index] = data;
+        if (index !== -1) {
+          prevState[index] = data;
+        }
         setConversations(prevState);
       });
     }
@@ -270,7 +274,6 @@ export default function Chat() {
               </Typography>
             </DrawerHeader>
             <Divider />
-            <SearchUser user={user} />
             <Divider />
             <Conversations
               conversations={conversations}
@@ -291,6 +294,9 @@ export default function Chat() {
             setOpenModal={setOpenModal}
           />
         </Box>
+      </Box>
+      <Box sx={{ display: "none" }}>
+        <audio ref={audioRef} src="/chat-sound.mp3" controls />
       </Box>
     </Container>
   );

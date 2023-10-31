@@ -11,28 +11,33 @@ import Box from "@mui/material/Box";
 import Grid from "@mui/material/Grid";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import Typography from "@mui/material/Typography";
-import { Stack } from "@mui/material";
+import { AlertProps, Snackbar, Stack } from "@mui/material";
 import baseUrl from "../../../utils/baseURL";
+import { Copyright } from "../signup/SignUp";
+import MuiAlert from "@mui/material/Alert";
 
-function Copyright(props: any) {
-  return (
-    <Typography
-      variant="body2"
-      color="text.secondary"
-      align="center"
-      {...props}
-    >
-      {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Nahid
-      </Link>{" "}
-      {new Date().getFullYear()}
-      {"."}
-    </Typography>
-  );
-}
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
+  props,
+  ref
+) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 export default function SignIn() {
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState("");
+
+  const handleClose = (
+    event?: React.SyntheticEvent | Event,
+    reason?: string
+  ) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    setOpen(false);
+  };
+
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
@@ -44,8 +49,9 @@ export default function SignIn() {
 
       localStorage.setItem("chat-app-token", res.data.accessToken);
       window.location.href = "/";
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      setError(error.response?.data?.data[0]?.message);
+      setOpen(true);
     }
   };
   return (
@@ -136,10 +142,20 @@ export default function SignIn() {
                 </Link>
               </Grid>
             </Grid>
-            <Copyright sx={{ mt: 5 }} />
+            <Copyright />
           </Box>
         </Box>
       </Paper>
+      <Snackbar
+        open={open}
+        anchorOrigin={{ horizontal: "center", vertical: "top" }}
+        autoHideDuration={4000}
+        onClose={handleClose}
+      >
+        <Alert onClose={handleClose} severity="error" sx={{ width: "100%" }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

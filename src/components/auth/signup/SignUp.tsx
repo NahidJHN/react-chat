@@ -12,7 +12,7 @@ import Container from "@mui/material/Container";
 import baseUrl from "../../../utils/baseURL";
 import Link from "../../Link";
 
-function Copyright(props: any) {
+export function Copyright(props: any) {
   return (
     <Typography
       variant="body2"
@@ -21,8 +21,8 @@ function Copyright(props: any) {
       {...props}
     >
       {"Copyright © "}
-      <Link color="inherit" href="https://mui.com/">
-        Nahid
+      <Link color="inherit" href="https://programmer-nahid.netlify.app/">
+        Programmer Nahid{" "}
       </Link>{" "}
       {new Date().getFullYear()}
       {"."}
@@ -42,11 +42,12 @@ export default function SignUp() {
     });
 
     try {
-      const res = await baseUrl.post("auth/signup", {
+      await baseUrl.post("auth/signup", {
         name: data.get("name"),
         email: data.get("email"),
         password: data.get("password"),
       });
+      window.location.href = "/auth/login";
     } catch (error) {
       console.log(error);
     }
