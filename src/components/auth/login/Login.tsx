@@ -50,7 +50,7 @@ export default function SignIn() {
       localStorage.setItem("chat-app-token", res.data.accessToken);
       window.location.href = "/";
     } catch (error: any) {
-      setError(error.response?.data?.data[0]?.message);
+      setError(error.response?.data?.data?.[0]?.message);
       setOpen(true);
     }
   };

@@ -10,7 +10,7 @@ import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import MenuIcon from "@mui/icons-material/Menu";
 import MenuOpenIcon from "@mui/icons-material/MenuOpen";
-import { Container, Tooltip } from "@mui/material";
+import { Container, Tooltip, useMediaQuery } from "@mui/material";
 
 import Conversations from "./Conversations";
 import ChatHeader from "./Chat-Header";
@@ -45,9 +45,9 @@ const closedMixin = (theme: Theme): CSSObject => ({
     easing: theme.transitions.easing.sharp,
     duration: theme.transitions.duration.leavingScreen,
   }),
-  width: `calc(${theme.spacing(9)} + 1px)`,
+  width: `calc(${theme.spacing(0)} + 1px)`,
   [theme.breakpoints.up("sm")]: {
-    width: `calc(${theme.spacing(9)} + 1px)`,
+    width: `calc(${theme.spacing(0)} + 1px)`,
   },
 });
 
@@ -81,8 +81,8 @@ const AppBar = styled(MuiAppBar, {
     }),
   }),
   ...(!open && {
-    width: `calc(100% - ${80}px)`,
-    marginLeft: drawerWidth,
+    // width: `calc(100% - ${80}px)`,
+    // marginLeft: drawerWidth,
     transition: theme.transitions.create(["width", "margin"], {
       easing: theme.transitions.easing.sharp,
       duration: theme.transitions.duration.enteringScreen,
@@ -115,7 +115,12 @@ const Drawer = styled(MuiDrawer, {
 
 export default function Chat() {
   const audioRef = React.useRef<HTMLAudioElement>(null);
-  const [open, setOpen] = React.useState(true);
+
+  // Use the useMediaQuery hook to detect screen size
+  const isSmallScreen = useMediaQuery("(max-width:600px)");
+
+  // Set the initial state of the menu based on screen size
+  const [open, setOpen] = React.useState(!isSmallScreen);
 
   const handleDrawerOpen = () => {
     setOpen(true);
@@ -206,12 +211,18 @@ export default function Chat() {
     }
   }, [socket?.connected]);
 
+  useEffect(() => {
+    if (isSmallScreen) {
+      setOpen(false);
+    }
+  }, [isSmallScreen]);
+
   return (
-    <Container>
+    <Container disableGutters>
       <Box
         sx={{
           border: "1px solid green",
-          margin: 1,
+          // margin: 1,
           height: "95vh",
         }}
       >

@@ -2,7 +2,6 @@ import { Navigate, Outlet, Route, Routes, useLocation } from "react-router-dom";
 import SignIn from "./components/auth/login/Login";
 import SignUp from "./components/auth/signup/SignUp";
 import Chat from "./components/Chat/Chat";
-import { Box, Container } from "@mui/material";
 
 const PrivateRoutes = () => {
   const token = localStorage.getItem("chat-app-token");

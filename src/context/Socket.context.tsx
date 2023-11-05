@@ -2,7 +2,7 @@
 import React, { createContext, useEffect, useState } from "react";
 import { Socket, io } from "socket.io-client";
 import useAuthUser from "../hooks/AuthUser";
-import { serverUrl } from "../utils/baseURL";
+import { localUrl, productionUrl } from "../utils/baseURL";
 
 export const SocketContext = createContext<any>(null);
 
@@ -13,11 +13,14 @@ function SocketContextProvider({ children }: React.PropsWithChildren) {
 
   useEffect(() => {
     if (!socket?.connected && user) {
-      const socket = io(serverUrl, {
-        query: {
-          userId: user._id,
-        },
-      });
+      const socket = io(
+        process.env.NODE_ENV === "production" ? productionUrl : localUrl,
+        {
+          query: {
+            userId: user._id,
+          },
+        }
+      );
       setSocket(socket);
       //then listen the event
       socket.on("onConnection", (data: any) => {

@@ -1,10 +1,12 @@
 import axios from "axios";
 
-export const serverUrl = "http://localhost:5050";
-// export const serverUrl = "https://chat-app-sn3m.onrender.com";
+export const localUrl = "http://localhost:5050";
+export const productionUrl = "https://chat-app-sn3m.onrender.com";
 
 const baseUrl = axios.create({
-  baseURL: `${serverUrl}/api/v1`,
+  baseURL: `${
+    process.env.NODE_ENV === "production" ? productionUrl : localUrl
+  }/api/v1`,
   headers: {
     "Content-type": "application/json",
     ...(typeof window !== "undefined" &&

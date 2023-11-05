@@ -15,6 +15,7 @@ import EmojiEmotionsIcon from "@mui/icons-material/EmojiEmotions";
 import { SocketContext } from "../../context/Socket.context";
 import { useSearchParams } from "react-router-dom";
 import Message from "../Message/Message";
+import ChatIcon from "@mui/icons-material/Chat";
 
 type PropTypes = {
   user: any;
@@ -78,86 +79,105 @@ function ChatBox({ user, messages }: PropTypes) {
       height="85vh"
       p={2}
     >
-      <Box
-        height="100%"
-        sx={{
-          overflowY: "auto",
-          scrollBehavior: "smooth",
-        }}
-        ref={boxRef}
-      >
-        {messages.map((message) => {
-          const isUser = message.sender === user?._id;
-          if (message.conversation === conversationId) {
-            return (
-              <Message
-                key={message._id}
-                isUser={isUser}
-                message={message.content}
-              />
-            );
-          }
-        })}
-      </Box>
+      {conversationId ? (
+        <>
+          <Box
+            height="100%"
+            sx={{
+              overflowY: "auto",
+              scrollBehavior: "smooth",
+            }}
+            ref={boxRef}
+          >
+            {messages.map((message) => {
+              const isUser = message.sender === user?._id;
+              if (message.conversation === conversationId) {
+                return (
+                  <Message
+                    key={message._id}
+                    isUser={isUser}
+                    message={message.content}
+                  />
+                );
+              }
+            })}
+          </Box>
 
-      <Stack
-        direction="row"
-        component="form"
-        onSubmit={handleSendMessage}
-        sx={{ position: "relative" }}
-      >
-        <TextField
-          fullWidth
-          size="small"
-          type="text"
-          name="message"
-          placeholder="Type a message"
-          onFocus={handleFocus}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          sx={{
-            margin: "auto",
-            ":focus": {
-              borderColor: "primary.main",
-            },
-          }}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment
-                position="end"
-                component={IconButton}
-                type="submit"
-                sx={{ width: 40, height: 40, borderRadius: "50%" }}
-              >
-                <SendIcon />
-              </InputAdornment>
-            ),
-            startAdornment: (
-              <InputAdornment
-                position="end"
-                component={IconButton}
-                sx={{ width: 40, height: 40, borderRadius: "50%" }}
-                onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
-              >
-                <EmojiEmotionsIcon />
-              </InputAdornment>
-            ),
-          }}
-        />
-        {isEmojiPickerOpen && (
-          <Box sx={{ position: "absolute", bottom: 50 }}>
-            <EmojiPicker
-              searchDisabled
-              emojiStyle={EmojiStyle.FACEBOOK}
-              theme={theme.palette.mode === "dark" ? Theme.DARK : Theme.LIGHT}
-              lazyLoadEmojis={true}
-              onEmojiClick={(event) => {
-                setMessage((message) => message + event.emoji);
+          <Stack
+            direction="row"
+            component="form"
+            onSubmit={handleSendMessage}
+            sx={{ position: "relative" }}
+          >
+            <TextField
+              fullWidth
+              size="small"
+              type="text"
+              name="message"
+              placeholder="Type a message"
+              onFocus={handleFocus}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              sx={{
+                margin: "auto",
+                ":focus": {
+                  borderColor: "primary.main",
+                },
+              }}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment
+                    position="end"
+                    component={IconButton}
+                    type="submit"
+                    sx={{ width: 40, height: 40, borderRadius: "50%" }}
+                  >
+                    <SendIcon />
+                  </InputAdornment>
+                ),
+                startAdornment: (
+                  <InputAdornment
+                    position="end"
+                    component={IconButton}
+                    sx={{ width: 40, height: 40, borderRadius: "50%" }}
+                    onClick={() => setIsEmojiPickerOpen((prev) => !prev)}
+                  >
+                    <EmojiEmotionsIcon />
+                  </InputAdornment>
+                ),
               }}
             />
-          </Box>
-        )}
-      </Stack>
+            {isEmojiPickerOpen && (
+              <Box sx={{ position: "absolute", bottom: 50 }}>
+                <EmojiPicker
+                  searchDisabled
+                  emojiStyle={EmojiStyle.FACEBOOK}
+                  theme={
+                    theme.palette.mode === "dark" ? Theme.DARK : Theme.LIGHT
+                  }
+                  lazyLoadEmojis={true}
+                  onEmojiClick={(event) => {
+                    setMessage((message) => message + event.emoji);
+                  }}
+                />
+              </Box>
+            )}
+          </Stack>
+        </>
+      ) : (
+        <Box height="100%">
+          <Stack height="100%" justifyContent="center" alignItems="center">
+            <ChatIcon
+              sx={{
+                fontSize: "5rem",
+              }}
+              height={200}
+              color="primary"
+            />
+            <h3>Choose a conversation to start chatting</h3>
+          </Stack>
+        </Box>
+      )}
     </Stack>
   );
 }
