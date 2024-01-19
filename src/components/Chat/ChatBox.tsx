@@ -1,3 +1,4 @@
+/* eslint-disable array-callback-return */
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
   Box,
@@ -8,7 +9,7 @@ import {
   TextField,
   useTheme,
 } from "@mui/material";
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import SendIcon from "@mui/icons-material/SendOutlined";
 
 import EmojiPicker, { EmojiStyle, Theme } from "emoji-picker-react";
@@ -52,7 +53,6 @@ function ChatBox({ user, messages, fetchMoreMessages, hasMore }: PropTypes) {
     setMessage("");
   };
 
-  console.log(messages);
   const handleFocus = () => {
     setIsEmojiPickerOpen(false);
     if (conversationId && messages.length) {
