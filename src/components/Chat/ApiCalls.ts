@@ -22,7 +22,12 @@ export const getActiveConversation = async (conversationId: string) => {
 };
 
 //fetch messages function
-export const fetchMessages = async (conversationId: string, page: number) => {
+export const fetchMessages = async (
+  conversationId: string,
+  page: number,
+  setPage: any
+) => {
   const { data } = await baseUrl.get(`messages/${conversationId}?page=${page}`);
+  setPage((prev: number) => prev + 1);
   return data?.data || [];
 };

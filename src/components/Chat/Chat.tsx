@@ -156,6 +156,7 @@ export default function Chat() {
   });
   const [conversations, setConversations] = useState<any>([]); //participant is the user with whom the current user is chatting
   const [newConversation, setNewConversation] = useState<any>(null);
+  // Add a new state to track whether fetch is triggered by infinite scroll
 
   useEffect(() => {
     if (Array.isArray(conversationData)) {
@@ -202,20 +203,42 @@ export default function Chat() {
 
   const fetchMoreMessages = async () => {
     if (conversationId) {
-      const newMessages = await fetchMessages(conversationId, page);
+      // Increment the page before fetching more messages
+      // setPage((prevPage) => prevPage + 1);
+      const newMessages = await fetchMessages(conversationId, page, setPage);
+
       if (newMessages.length === 0) {
         setHasMore(false);
       } else {
-        setMessages((prevMessages) => [...newMessages, ...prevMessages]);
-        setPage((prevPage) => prevPage + 1);
+        setMessages((prevMessages) => {
+          const prevMessageConversationId =
+            prevMessages[prevMessages.length - 1]?.conversation;
+          console.log(prevMessageConversationId, newMessages[0]?.conversation);
+          if (prevMessageConversationId === newMessages[0]?.conversation) {
+            console.log("trigger");
+            return [...prevMessages, ...newMessages];
+          } else {
+            return [...newMessages];
+          }
+        });
       }
     }
   };
 
   useEffect(() => {
     if (conversationId) {
+      // Cleanup function to reset page and clear messages when conversation changes
+      const cleanup = () => {
+        setPage(1);
+      };
+
+      // Fetch active conversation and messages
       refetchActiveConversation();
+
+      // Fetch initial messages
       fetchMoreMessages();
+
+      return cleanup; // This cleanup function will be called when the component unmounts or when conversation changes
     }
   }, [conversationId]);
 

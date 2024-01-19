@@ -104,15 +104,13 @@ function ChatBox({ user, messages, fetchMoreMessages, hasMore }: PropTypes) {
             >
               {messages.map((message, index) => {
                 const isUser = message.sender === user?._id;
-                if (message.conversation === conversationId) {
-                  return (
-                    <Message
-                      key={message._id + index}
-                      isUser={isUser}
-                      message={message.content}
-                    />
-                  );
-                }
+                return (
+                  <Message
+                    key={message._id + index}
+                    isUser={isUser}
+                    message={message.content}
+                  />
+                );
               })}
             </InfiniteScroll>
           </Box>
