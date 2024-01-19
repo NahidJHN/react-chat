@@ -10,8 +10,10 @@ import {
 import dayjs from "dayjs";
 import React from "react";
 import UserList from "./UserList";
-import { filterParticipants } from "./ApiCalls";
 import AccountMenu from "./UserMenu";
+import { useQueries } from "@tanstack/react-query";
+import { getActiveConversation } from "./ApiCalls";
+import ConversationsListSkeleton from "../skeleton/Conversations-list";
 
 type PropTypes = {
   conversations: any[];
@@ -20,16 +22,10 @@ type PropTypes = {
   groupConversations: any[];
   privateConversations: any[];
   participants: any[];
+  newConversation: any;
 };
 
-function Conversations({
-  conversations,
-  onlineUsers,
-  groupConversations,
-  privateConversations,
-  participants,
-  user,
-}: PropTypes) {
+function Conversations({ conversations, user, newConversation }: PropTypes) {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
   const handleClick = (event: React.MouseEvent<HTMLElement>) => {
@@ -39,42 +35,72 @@ function Conversations({
     setAnchorEl(null);
   };
 
+  const conversationsIds = conversations.map(
+    (conversation) => conversation._id
+  );
+  const { data: updateConversations, isLoading } = useQueries({
+    queries: conversationsIds.map((conversationId) => ({
+      queryKey: ["conversation", conversationId],
+      queryFn: () => getActiveConversation(conversationId),
+    })),
+    combine: (results) => {
+      return {
+        data: results.map((result) => result.data?.data?.data),
+        isLoading: results.some((result) => result.isLoading),
+        isError: results.some((result) => result.isError),
+      };
+    },
+  });
+
   return (
     <Stack justifyContent="space-between" height="100%">
       <Box sx={{ flexGrow: 1 }}>
-        {conversations.map((conversation: any, index: number) => {
-          const filterConversation = filterParticipants(
-            conversation,
-            groupConversations,
-            privateConversations,
-            participants,
-            onlineUsers,
-            user
-          );
+        {isLoading ? (
+          <>
+            {/* skelton for loader */}
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+            <ConversationsListSkeleton />
+          </>
+        ) : (
+          <>
+            {updateConversations.map((conversation: any, index: number) => {
+              if (newConversation && conversation._id === newConversation._id) {
+                conversation.lastMessage = newConversation.lastMessage;
+                conversation.lastUpdate = newConversation.lastUpdate;
+                conversation.readPersons = newConversation.readPersons;
+              }
 
-          return (
-            <React.Fragment key={filterConversation._id}>
-              <UserList
-                open={true}
-                lastMessage={
-                  filterConversation.lastMessage
-                    ? filterConversation.lastMessage?.content?.slice(0, 15) +
-                      "..."
-                    : "No message"
-                }
-                time={dayjs(filterConversation.lastUpdate).format("hh:mm A")}
-                userName={filterConversation?.name}
-                userAvatar={filterConversation?.avatar}
-                isOnline={filterConversation.isOnline}
-                isRead={filterConversation?.readPersons?.includes(user?._id)}
-                _id={filterConversation._id}
-              />
-              {index !== conversations.length - 1 && (
-                <Divider sx={{ padding: 0 }} />
-              )}
-            </React.Fragment>
-          );
-        })}
+              return (
+                <React.Fragment key={conversation?._id}>
+                  <UserList
+                    open={true}
+                    lastMessage={
+                      conversation?.lastMessage
+                        ? conversation?.lastMessage?.content?.slice(0, 15) +
+                          "..."
+                        : "No message"
+                    }
+                    time={dayjs(conversation?.lastUpdate).format("hh:mm A")}
+                    userName={conversation?.name}
+                    userAvatar={conversation?.avatar}
+                    isOnline={conversation?.isOnline}
+                    isRead={conversation?.readPersons?.includes(user?._id)}
+                    _id={conversation?._id}
+                  />
+                  {index !== conversations.length - 1 && (
+                    <Divider sx={{ padding: 0 }} />
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </>
+        )}
       </Box>
       <Divider sx={{ padding: 0, mb: 2 }} />
       <Stack

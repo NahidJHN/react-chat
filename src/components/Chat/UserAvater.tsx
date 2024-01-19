@@ -10,13 +10,13 @@ interface PropTypes {
 }
 
 interface BadgeOwnProps {
-  isOnline: boolean;
+  isonline: string;
 }
 
-const StyledBadge = styled(Badge)<BadgeOwnProps>(({ theme, isOnline }) => {
+const StyledBadge = styled(Badge)<BadgeOwnProps>(({ theme, isonline }) => {
   return {
     "& .MuiBadge-badge": {
-      ...(isOnline && {
+      ...(isonline === "true" && {
         backgroundColor: "#44b700",
         color: "#44b700",
         boxShadow: `0 0 0 2px ${theme.palette.background.paper}`,
@@ -38,7 +38,7 @@ const StyledBadge = styled(Badge)<BadgeOwnProps>(({ theme, isOnline }) => {
 function UserAvatar(props: PropTypes) {
   return (
     <StyledBadge
-      isOnline={props.isOnline}
+      isonline={props.isOnline?.toString()}
       overlap="circular"
       anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
       variant="dot"

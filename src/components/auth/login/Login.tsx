@@ -50,7 +50,7 @@ export default function SignIn() {
       localStorage.setItem("chat-app-token", res.data.accessToken);
       window.location.href = "/";
     } catch (error: any) {
-      setError(error.response?.data?.data?.[0]?.message);
+      setError(error.response?.data?.message);
       setOpen(true);
     }
   };
@@ -131,13 +131,13 @@ export default function SignIn() {
               Sign In
             </Button>
             <Grid container>
-              <Grid item xs>
+              {/* <Grid item xs>
                 <Link href="#" variant="body2">
                   Forgot password?
                 </Link>
-              </Grid>
+              </Grid> */}
               <Grid item>
-                <Link href="#" variant="body2">
+                <Link href="/auth/signup" variant="body2">
                   {"Don't have an account? Sign Up"}
                 </Link>
               </Grid>

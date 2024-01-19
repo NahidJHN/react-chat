@@ -18,7 +18,7 @@ import ChatHeader from "./Chat-Header";
 import ChatBox from "./ChatBox";
 import {
   fetchMessages,
-  filterParticipants,
+  getActiveConversation,
   getConversation,
   getGroupConversation,
   getParticipantByUserId,
@@ -29,6 +29,7 @@ import FormDialog from "./SearchModal";
 import useAuthUser from "../../hooks/AuthUser";
 import { useSearchParams } from "react-router-dom";
 import { SocketContext } from "../../context/Socket.context";
+import { useQuery } from "@tanstack/react-query";
 const drawerWidth = 300;
 
 const openedMixin = (theme: Theme): CSSObject => ({
@@ -130,12 +131,11 @@ export default function Chat() {
     setOpen(false);
   };
 
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [groupConversations, setGroupConversations] = useState<any[]>([]);
-  const [privateConversations, setPrivateConversations] = useState<any[]>([]);
-  const [conversation, setConversation] = useState<any>(null); //participant is the user with whom the current user is chatting
-  const [participants, setParticipants] = useState<any>([]);
+  // const [conversation, setConversation] = useState<any>(null); //participant is the user with whom the current user is chatting
+  // const [participants, setParticipants] = useState<any>([]);
   const [messages, setMessages] = useState<any[]>([]);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
 
   //search modal
   const [openModal, setOpenModal] = useState(false);
@@ -146,70 +146,101 @@ export default function Chat() {
 
   const { onlineUsers, socket } = useContext(SocketContext);
 
-  useEffect(() => {
-    if (user) {
-      getConversation(setConversations, user._id);
-      getGroupConversation(setGroupConversations, user._id);
-      getPrivateConversation(setPrivateConversations, user._id);
-      getParticipantByUserId(setParticipants, user._id);
-    }
-  }, [user]);
+  const { data: conversationData } = useQuery<any>({
+    queryKey: ["conversations"],
+    queryFn: () => getConversation(user._id),
+    enabled: !!user,
+    select: (data) => {
+      return data.data?.data;
+    },
+  });
+  const [conversations, setConversations] = useState<any>([]); //participant is the user with whom the current user is chatting
+  const [newConversation, setNewConversation] = useState<any>(null);
 
   useEffect(() => {
-    if (
-      conversationId &&
-      conversations.length &&
-      participants.length &&
-      (privateConversations.length || groupConversations.length)
-    ) {
-      const conversation = conversations.find(
-        (item) => item._id === conversationId
-      );
-      const filterConversation = filterParticipants(
-        conversation,
-        groupConversations,
-        privateConversations,
-        participants,
-        onlineUsers,
-        user
-      );
-      setConversation(filterConversation);
+    if (Array.isArray(conversationData)) {
+      setConversations(conversationData);
     }
-  }, [
-    conversationId,
-    participants,
-    onlineUsers,
-    conversations,
-    groupConversations,
-    privateConversations,
-    messages,
-  ]);
+  }, [conversationData]);
+
+  const { data: groupConversations = [] } = useQuery<any>({
+    queryKey: ["group-conversations"],
+    queryFn: () => getGroupConversation(user._id),
+    enabled: !!user,
+    select: (data) => {
+      return data.data?.data;
+    },
+  });
+
+  const { data: privateConversations = [] } = useQuery<any>({
+    queryKey: ["private-conversations"],
+    queryFn: () => getPrivateConversation(user._id),
+    enabled: !!user,
+    select: (data) => {
+      return data.data?.data;
+    },
+  });
+
+  const { data: participants = [] } = useQuery<any>({
+    queryKey: ["participants"],
+    queryFn: () => getParticipantByUserId(user._id),
+    enabled: !!user,
+    select: (data) => {
+      return data.data?.data;
+    },
+  });
+
+  const { data: conversation, refetch: refetchActiveConversation } =
+    useQuery<any>({
+      queryKey: ["conversation"],
+      queryFn: () => getActiveConversation(conversationId || ""),
+      enabled: !!conversationId,
+      select: (data) => {
+        return data.data?.data;
+      },
+    });
+
+  const fetchMoreMessages = async () => {
+    if (conversationId) {
+      const newMessages = await fetchMessages(conversationId, page);
+      if (newMessages.length === 0) {
+        setHasMore(false);
+      } else {
+        setMessages((prevMessages) => [...newMessages, ...prevMessages]);
+        setPage((prevPage) => prevPage + 1);
+      }
+    }
+  };
+
   useEffect(() => {
     if (conversationId) {
-      fetchMessages(conversationId, setMessages);
+      refetchActiveConversation();
+      fetchMoreMessages();
     }
   }, [conversationId]);
 
   useEffect(() => {
     if (socket?.connected) {
       socket.on("chat", (data: any) => {
-        setMessages((prevState) => [...prevState, data]);
-        // audioRef.current?.play();
-      });
-
-      socket.on("conversation", (data: any) => {
-        const prevState = [...conversations];
-
-        const index = prevState.findIndex(
-          (conversation) => conversation._id === data._id
-        );
-        if (index !== -1) {
-          prevState[index] = data;
-        }
-        setConversations(prevState);
+        setMessages((prev) => [data, ...prev]);
       });
     }
   }, [socket?.connected]);
+
+  useEffect(() => {
+    socket?.on("conversation", (data: any) => {
+      // console.log(data);
+      setNewConversation(data);
+      const prevState = [...conversations];
+      const index = prevState.findIndex(
+        (conversation) => conversation._id === data._id
+      );
+      if (index !== -1) {
+        prevState[index].lastMessage = data.lastMessage;
+        setConversations(() => prevState);
+      }
+    });
+  }, [socket?.connected, conversations]);
 
   useEffect(() => {
     if (isSmallScreen) {
@@ -293,11 +324,17 @@ export default function Chat() {
               participants={participants}
               user={user}
               onlineUsers={onlineUsers}
+              newConversation={newConversation}
             />
           </Drawer>
           <Box component="main" sx={{ flexGrow: 1 }}>
             <DrawerHeader />
-            <ChatBox user={user} messages={messages} />
+            <ChatBox
+              hasMore={hasMore}
+              user={user}
+              messages={messages}
+              fetchMoreMessages={fetchMoreMessages}
+            />
           </Box>
           <FormDialog
             user={user}

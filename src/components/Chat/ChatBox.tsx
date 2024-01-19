@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
   Box,
+  CircularProgress,
   IconButton,
   InputAdornment,
   Stack,
@@ -16,15 +17,17 @@ import { SocketContext } from "../../context/Socket.context";
 import { useSearchParams } from "react-router-dom";
 import Message from "../Message/Message";
 import ChatIcon from "@mui/icons-material/Chat";
+import InfiniteScroll from "react-infinite-scroll-component";
 
 type PropTypes = {
   user: any;
   messages: any[];
+  fetchMoreMessages: () => void;
+  hasMore: boolean;
 };
 
-function ChatBox({ user, messages }: PropTypes) {
+function ChatBox({ user, messages, fetchMoreMessages, hasMore }: PropTypes) {
   const theme = useTheme();
-  const boxRef = useRef<HTMLElement>(null);
 
   const { socket } = useContext(SocketContext);
 
@@ -49,22 +52,13 @@ function ChatBox({ user, messages }: PropTypes) {
     setMessage("");
   };
 
+  console.log(messages);
   const handleFocus = () => {
     setIsEmojiPickerOpen(false);
-    if (
-      conversationId &&
-      messages.length &&
-      messages[messages.length - 1]?.sender !== user?._id
-    ) {
+    if (conversationId && messages.length) {
       socket.emit("readText", { _id: conversationId, userId: user?._id });
     }
   };
-
-  useEffect(() => {
-    if (boxRef.current) {
-      boxRef.current.scrollTop = boxRef.current.scrollHeight + 500;
-    }
-  }, [messages]);
 
   useEffect(() => {
     if (socket && conversationId) {
@@ -84,23 +78,43 @@ function ChatBox({ user, messages }: PropTypes) {
           <Box
             height="100%"
             sx={{
-              overflowY: "auto",
+              overflow: "auto",
               scrollBehavior: "smooth",
+              display: "flex",
+              flexDirection: "column-reverse",
             }}
-            ref={boxRef}
+            id="scrollableDiv"
           >
-            {messages.map((message) => {
-              const isUser = message.sender === user?._id;
-              if (message.conversation === conversationId) {
-                return (
-                  <Message
-                    key={message._id}
-                    isUser={isUser}
-                    message={message.content}
-                  />
-                );
+            <InfiniteScroll
+              dataLength={messages.length}
+              next={fetchMoreMessages}
+              hasMore={hasMore}
+              loader={
+                <Stack
+                  overflow="hidden"
+                  direction="row"
+                  justifyContent="center"
+                >
+                  <CircularProgress disableShrink size={30} />
+                </Stack>
               }
-            })}
+              scrollableTarget="scrollableDiv" // Replace with the ID or ref of your scrollable container
+              style={{ display: "flex", flexDirection: "column-reverse" }} //To put endMessage and loader to the top.
+              inverse={true}
+            >
+              {messages.map((message, index) => {
+                const isUser = message.sender === user?._id;
+                if (message.conversation === conversationId) {
+                  return (
+                    <Message
+                      key={message._id + index}
+                      isUser={isUser}
+                      message={message.content}
+                    />
+                  );
+                }
+              })}
+            </InfiniteScroll>
           </Box>
 
           <Stack

@@ -19,7 +19,7 @@ function App() {
     <Routes>
       <Route path="auth">
         <Route path="login" element={<SignIn />} />
-        <Route path="registration" element={<SignUp />} />
+        <Route path="signup" element={<SignUp />} />
       </Route>
       <Route path="" element={<PrivateRoutes />}>
         <Route path="" element={<Chat />} />

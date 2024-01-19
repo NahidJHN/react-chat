@@ -12,7 +12,8 @@ function SocketContextProvider({ children }: React.PropsWithChildren) {
   const [onlineUsers, setOnlineUsers] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!socket?.connected && user) {
+    if (!socket?.connected) {
+      if (!user) return;
       const socket = io(
         process.env.NODE_ENV === "production" ? productionUrl : localUrl,
         {
@@ -21,7 +22,6 @@ function SocketContextProvider({ children }: React.PropsWithChildren) {
           },
         }
       );
-      setSocket(socket);
       //then listen the event
       socket.on("onConnection", (data: any) => {
         setOnlineUsers(data);

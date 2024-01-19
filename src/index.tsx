@@ -11,21 +11,27 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import theme from "./components/ThemeRegistry/theme";
 import { BrowserRouter } from "react-router-dom";
 import SocketContextProvider from "./context/Socket.context";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const root = ReactDOM.createRoot(
   document.getElementById("root") as HTMLElement
 );
+
+export const queryClient = new QueryClient();
+
 root.render(
   <React.StrictMode>
-    <BrowserRouter>
-      <SocketContextProvider>
-        <ThemeProvider theme={theme}>
-          {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-          <CssBaseline />
-          <App />
-        </ThemeProvider>
-      </SocketContextProvider>
-    </BrowserRouter>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <SocketContextProvider>
+          <ThemeProvider theme={theme}>
+            {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
+            <CssBaseline />
+            <App />
+          </ThemeProvider>
+        </SocketContextProvider>
+      </BrowserRouter>
+    </QueryClientProvider>
   </React.StrictMode>
 );
 
